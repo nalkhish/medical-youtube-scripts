@@ -50,8 +50,14 @@ def generate_script(title, style_transcript, api_key):
 # {{"transcript": "Your full script here, with escaped \\"quotes\\" and \\n for newlines."}}
 # """
     prompt = """
-        Output a JSON schema with a field for transcript. In the transcript write a 500 word essay about the weather
+    Style Reference Transcript:
+    """ + style_transcript + """
+    
+    Output a JSON schema with a field for transcript. In the transcript write approximately 10 words about the weather
     """
+
+    # print("prompt", prompt)
+    # raise Exception("Prompt printed")
 
     payload = {
         # Using the exact model id provided globally by the user rules/request
