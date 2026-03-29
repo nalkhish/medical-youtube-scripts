@@ -50,7 +50,7 @@ def generate_script(title, style_transcript, api_key):
 # {{"transcript": "Your full script here, with escaped \\"quotes\\" and \\n for newlines."}}
 # """
     prompt = """
-        Output a JSON schema with a field for transcript. In the transcript right some 10-20 random words about the weather
+        Output a JSON schema with a field for transcript. In the transcript write a 500 word essay about the weather
     """
 
     payload = {
