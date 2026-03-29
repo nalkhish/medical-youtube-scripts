@@ -32,23 +32,26 @@ def generate_script(title, style_transcript, api_key):
         "Content-Type": "application/json"
     }
 
-    prompt = f"""You are an expert scriptwriter specializing in medical and health YouTube videos. 
-Your task is to write a script for a new video titled "{title}". 
-The script must be entirely in the style, tone, and pacing of Dr. Alex Wibberley, based on the following style reference transcript.
+#     prompt = f"""You are an expert scriptwriter specializing in medical and health YouTube videos. 
+# Your task is to write a script for a new video titled "{title}". 
+# The script must be entirely in the style, tone, and pacing of Dr. Alex Wibberley, based on the following style reference transcript.
 
-Style Reference Transcript:
-{style_transcript}
+# Style Reference Transcript:
+# {style_transcript}
 
-OUTPUT INSTRUCTIONS:
-Generate the final script as a raw JSON object. You must strictly adhere to the following rules to ensure the JSON is valid:
-1. The JSON must contain a single key named "transcript".
-2. The value must be a single, continuous string.
-3. You MUST escape all double quotes within the script using a backslash (e.g., \\").
-4. You MUST represent all paragraph breaks and newlines using the newline character (\\n). Do not use actual line breaks in the string.
+# OUTPUT INSTRUCTIONS:
+# Generate the final script as a raw JSON object. You must strictly adhere to the following rules to ensure the JSON is valid:
+# 1. The JSON must contain a single key named "transcript".
+# 2. The value must be a single, continuous string.
+# 3. You MUST escape all double quotes within the script using a backslash (e.g., \\").
+# 4. You MUST represent all paragraph breaks and newlines using the newline character (\\n). Do not use actual line breaks in the string.
 
-Output strictly this format:
-{{"transcript": "Your full script here, with escaped \\"quotes\\" and \\n for newlines."}}
-"""
+# Output strictly this format:
+# {{"transcript": "Your full script here, with escaped \\"quotes\\" and \\n for newlines."}}
+# """
+    prompt = """
+        Output a JSON schema with a field for transcript. In the transcript right some 10-20 random words about the weather
+    """
 
     payload = {
         # Using the exact model id provided globally by the user rules/request

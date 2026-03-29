@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "transcript": {
+            "type": "string",
+            "description": "Weather transcript",
+            "examples": [
+                "sunny cloudy raining temperature humid breeze stormy forecast umbrella jacket degrees warm cold freezing precipitation"
+            ]
+        }
+    },
+    "required": [
+        "transcript"
+    ]
+}

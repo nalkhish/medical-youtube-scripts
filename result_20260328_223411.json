@@ -1,0 +1,30 @@
+{
+    "id": "ocwj2cA-6z2FuN-9e3b78f53eb11cc4",
+    "object": "chat.completion",
+    "created": 1774751651,
+    "model": "moonshotai/Kimi-K2.5",
+    "metadata": {
+        "weight_version": "default"
+    },
+    "prompt": [],
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"object\",\"properties\":{\"transcript\":{\"type\":\"string\",\"description\":\"Weather transcript\",\"examples\":[\"sunny cloudy raining temperature humid breeze stormy forecast umbrella jacket degrees warm cold freezing precipitation\"]}},\"required\":[\"transcript\"]}",
+                "tool_calls": [],
+                "reasoning": "The user wants a JSON schema with a field for \"transcript\" that contains 10-20 random words about the weather.\n\nI need to:\n1. Create a valid JSON schema\n2. Include a \"transcript\" field\n3. Include 10-20 random words about the weather as an example or default value\n\nJSON Schema structure should include:\n- $schema declaration\n- type: object\n- properties with transcript field\n- transcript should have type: string and an example or description with the weather words\n\nLet me count some weather words:\n\"Today sunny cloudy raining temperature humid breeze stormy forecast umbrella jacket degrees warm cold freezing precipitation atmospheric pressure visibility\"\n\nThat's about 15 words. Good.\n\nThe schema should look like:\n```json\n{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"transcript\": {\n      \"type\": \"string\",\n      \"description\": \"Weather-related transcript\",\n      \"examples\": [\"sunny cloudy raining temperature humid breeze stormy forecast umbrella jacket warm freezing precipitation atmospheric pressure visibility degrees\"]\n    }\n  },\n  \"required\": [\"transcript\"]\n}\n```\n\nOr I could put the words directly as a default or const, but examples is more appropriate for JSON Schema.\n\nActually, looking at the request again: \"Output a JSON schema with a field for transcript. In the transcript right some 10-20 random words about the weather\"\n\nThe user might want the schema to define the structure, and perhaps include the weather words as an example or default value.\n\nLet me provide a clean JSON schema:\n\n```json\n{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"transcript\": {\n      \"type\": \"string\",\n      \"description\": \"A transcript containing weather-related terms\",\n      \"examples\": [\"sunny clouds raining temperature humid breeze stormy forecast umbrella jacket warm freezing precipitation atmospheric pressure visibility\"]\n    }\n  },\n  \"required\": [\"transcript\"]\n}\n```\n\nWait, the user said \"In the transcript right some 10-20 random words\". This could mean they want the actual JSON instance (data), not just the schema. But they specifically asked for \"a JSON schema\".\n\nHowever, looking at the phrasing \"Output a JSON schema with a field for transcript\", they want the schema definition. But then \"In the transcript write some 10-20 random words\" suggests they want the example/default value to contain those words.\n\nI'll provide a JSON Schema where the transcript field has an example with 10-20 weather words.\n\nLet me generate 15 weather words:\nsunny, cloudy, raining, temperature, humid, breeze, stormy, forecast, umbrella, jacket, degrees, warm, cold, freezing, precipitation\n\nThat's 15 words.\n\nFinal check: The output must be ONLY valid JSON conforming to the requested schema. The user requested a JSON schema, so I should output a JSON Schema object.\n\nStructure:\n- $schema\n- type: object\n- properties containing transcript\n- transcript has type string and example/default with the weather words\n\nI'll use \"examples\" array as it's standard in JSON Schema.\n\nActually, looking at the strict instruction: \"outputs only valid JSON conforming strictly to the requested schema\". Wait, the user didn't provide a schema to conform to, they asked me to output a schema. So I just need to output valid JSON (which a JSON Schema is).\n\nSo my output should be a JSON Schema object.\n\nLet me verify the word count:\n\"sunny cloudy raining temperature humid breeze stormy forecast umbrella jacket degrees warm cold freezing precipitation\"\n\n1. sunny\n2. cloudy\n3. raining\n4. temperature\n5. humid\n6. breeze\n7. stormy\n8. forecast\n9. umbrella\n10. jacket\n11. degrees\n12. warm\n13. cold\n14. freezing\n15. precipitation\n\nPerfect, 15 words.\n\nThe JSON:\n```json\n{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"transcript\": {\n      \"type\": \"string\",\n      \"description\": \"Weather transcript\",\n      \"examples\": [\n        \"sunny cloudy raining temperature humid breeze stormy forecast umbrella jacket degrees warm cold freezing precipitation\"\n      ]\n    }\n  },\n  \"required\": [\"transcript\"]\n}\n```\n\nThis looks correct. "
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "seed": null
+        }
+    ],
+    "usage": {
+        "prompt_tokens": 59,
+        "total_tokens": 1046,
+        "completion_tokens": 987,
+        "reasoning_tokens": 0
+    }
+}
