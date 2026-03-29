@@ -50,7 +50,7 @@ def generate_script(title, style_transcript, api_key):
 # {{"transcript": "Your full script here, with escaped \\"quotes\\" and \\n for newlines."}}
 # """
     prompt = """You are an expert scriptwriter specializing in medical and health YouTube videos. 
-    Your task is to write a script for a new video titled """ + title + """. 
+    Your task is to write a 5000-7000 word script for a new video titled """ + title + """. 
     The script must be entirely in the style, tone, and pacing of Dr. Alex Wibberley, based on the following style reference transcript.
 
     Style Reference Transcript:

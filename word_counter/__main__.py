@@ -32,7 +32,8 @@ def count_words_in_transcript(file_path):
 def main():
     files_to_process = [
         "transcripts/le1n8lJCGKw.json",
-        "generated_script_20260328_225301.json"
+        # "generated_script_20260328_225301.json",
+        "generated_script_20260328_230630.json"
     ]
 
     for file_path in files_to_process:
