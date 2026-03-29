@@ -1,0 +1,3 @@
+Update output script filenames to include timestamps
+
+    - I chose to append standard datetime strings to output filenames instead of relying on UUIDs or Unix epoch strings because it ensures chronological sorting out of the box and is immediately human-readable.
