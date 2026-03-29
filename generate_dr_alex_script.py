@@ -49,15 +49,15 @@ def generate_script(title, style_transcript, api_key):
 # Output strictly this format:
 # {{"transcript": "Your full script here, with escaped \\"quotes\\" and \\n for newlines."}}
 # """
-    prompt = """
+    prompt = """You are an expert scriptwriter specializing in medical and health YouTube videos. 
+    Your task is to write a script for a new video titled """ + title + """. 
+    The script must be entirely in the style, tone, and pacing of Dr. Alex Wibberley, based on the following style reference transcript.
+
     Style Reference Transcript:
     """ + style_transcript + """
     
-    Output a JSON schema with a field for transcript. In the transcript write approximately 10 words about the weather
+    Output the transcript in json format with a field for transcript
     """
-
-    # print("prompt", prompt)
-    # raise Exception("Prompt printed")
 
     payload = {
         # Using the exact model id provided globally by the user rules/request
