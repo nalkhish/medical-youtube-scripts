@@ -32,31 +32,16 @@ def generate_script(title, style_transcript, api_key):
         "Content-Type": "application/json"
     }
 
-#     prompt = f"""You are an expert scriptwriter specializing in medical and health YouTube videos. 
-# Your task is to write a script for a new video titled "{title}". 
-# The script must be entirely in the style, tone, and pacing of Dr. Alex Wibberley, based on the following style reference transcript.
-
-# Style Reference Transcript:
-# {style_transcript}
-
-# OUTPUT INSTRUCTIONS:
-# Generate the final script as a raw JSON object. You must strictly adhere to the following rules to ensure the JSON is valid:
-# 1. The JSON must contain a single key named "transcript".
-# 2. The value must be a single, continuous string.
-# 3. You MUST escape all double quotes within the script using a backslash (e.g., \\").
-# 4. You MUST represent all paragraph breaks and newlines using the newline character (\\n). Do not use actual line breaks in the string.
-
-# Output strictly this format:
-# {{"transcript": "Your full script here, with escaped \\"quotes\\" and \\n for newlines."}}
-# """
     prompt = """You are an expert scriptwriter specializing in medical and health YouTube videos. 
     Your task is to write a 6000-8000 word transcript for a new video titled """ + title + """. 
-    The script must be entirely in the style, tone, and pacing of Dr. Alex Wibberley, based on the following style reference transcript.
+    The script must be entirely in the style, tone, and pacing of the following STYLE REFERENCE TRANSCRIPT.
 
-    Style Reference Transcript:
+    STYLE REFERENCE TRANSCRIPT:
     """ + style_transcript + """
-    
-    The transcript should be plaintext. Use \n for newlines and \\ for backslashes to make it visually easy to read.
+
+    Rules:
+    1. Avoid using too high of a frequency of a word from the STYLE REFERENCE TRANSCRIPT. For example, don't say 'social' a lot just because it's in the STYLE REFERENCE TRANSCRIPT.
+    2. The transcript should be plaintext. Use \n for newlines and \\ for backslashes to make it visually easy to read.
 
     Output the transcript and a topic in format {transcript: string, topic: string}
     """
@@ -124,7 +109,7 @@ def generate_script(title, style_transcript, api_key):
 def main():
     parser = argparse.ArgumentParser(description="Generate a Dr. Alex style YouTube script.")
     parser.add_argument("--title", help="Title or subject of the target script")
-    parser.add_argument("--transcript-path", default=os.path.join(TRANSCRIPTS_DIR, "le1n8lJCGKw.json"), help="Path to the style reference transcript")
+    parser.add_argument("--transcript-path", default=os.path.join(TRANSCRIPTS_DIR, "le1n8lJCGKw.json"), help="Path to the STYLE REFERENCE TRANSCRIPT")
     parser.add_argument("--output", default="generated_script.json", help="Path to save the output JSON")
     args = parser.parse_args()
 
