@@ -50,13 +50,15 @@ def generate_script(title, style_transcript, api_key):
 # {{"transcript": "Your full script here, with escaped \\"quotes\\" and \\n for newlines."}}
 # """
     prompt = """You are an expert scriptwriter specializing in medical and health YouTube videos. 
-    Your task is to write a 5000-7000 word script for a new video titled """ + title + """. 
+    Your task is to write a 6000-8000 word transcript for a new video titled """ + title + """. 
     The script must be entirely in the style, tone, and pacing of Dr. Alex Wibberley, based on the following style reference transcript.
 
     Style Reference Transcript:
     """ + style_transcript + """
     
-    Output the transcript in json format with a field for transcript
+    The transcript should be plaintext. Use \n for newlines and \\ for backslashes to make it visually easy to read.
+
+    Output the transcript and a topic in format {transcript: string, topic: string}
     """
 
     payload = {
@@ -140,7 +142,10 @@ def main():
         sys.exit(1)
 
     print(f"Generating script for title: '{args.title}'...")
+    
     script_json = generate_script(args.title, style_transcript, api_key)
+
+    script_json["title"] = args.title
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     output_filename = args.output
