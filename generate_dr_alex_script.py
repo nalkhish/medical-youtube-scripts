@@ -4,7 +4,8 @@ import argparse
 import requests
 import sys
 import datetime
-from config import TRANSCRIPTS_DIR, TOGETHER_API_KEY
+from pathlib import Path
+from config import TRANSCRIPTS_DIR, TOGETHER_API_KEY, TRANSCRIPT_BASE_URL, TRANSCRIPT_API_KEY
 
 def load_transcript(file_path):
     """Loads the transcript JSON and extracts the text content into a single string."""
@@ -108,9 +109,58 @@ def generate_script(title, style_transcript, api_key):
         print(f"Raw output: {content}")
         sys.exit(1)
 
+
+def _fetch_transcript(video_id: str) -> Path:
+    """Download transcript JSON for a single video."""
+    _HEADERS = {"Authorization": f"Bearer {TRANSCRIPT_API_KEY}"}
+    out_path = TRANSCRIPTS_DIR / f"{video_id}.json"
+    formatted_out_path = TRANSCRIPTS_DIR / f"{video_id}_formatted.json"
+
+    if formatted_out_path.exists():
+        print(f"[el] Formatted transcript for {video_id} already on disk, skipping download and formatting.")
+        return formatted_out_path
+
+    if out_path.exists():
+        print(f"[el] Transcript for {video_id} already on disk, skipping download.")
+        data = json.loads(out_path.read_text(encoding='utf-8'))
+    else:
+        print(f"[el] Fetching transcript for {video_id} …")
+        resp = requests.get(
+            f"{TRANSCRIPT_BASE_URL}/youtube/transcript",
+            headers=_HEADERS,
+            params={
+                "video_url": video_id,
+                "format": "json",
+                "include_timestamp": "true",
+                "send_metadata": "true",
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+
+    def _format_and_save(transcript_data: dict, dest_path: Path):
+        transcript_parts = transcript_data.get('transcript', [])
+        full_text = " ".join([part.get('text', '').strip() for part in transcript_parts])
+        
+        metadata = transcript_data.get('metadata', {})
+        title = metadata.get('title', f"Original Video {video_id}")
+        
+        formatted_json = {
+            "transcript": full_text,
+            "topic": "",
+            "title": title
+        }
+        dest_path.write_text(json.dumps(formatted_json, indent=4, ensure_ascii=False))
+
+    _format_and_save(data, formatted_out_path)
+    return formatted_out_path
+
 def main():
     parser = argparse.ArgumentParser(description="Generate a Dr. Alex style YouTube script.")
     parser.add_argument("--title", help="Title or subject of the target script")
+    parser.add_argument("--original-script-id", help="ID of the original script to use as a reference")
     parser.add_argument("--transcript-path", default=os.path.join(TRANSCRIPTS_DIR, "le1n8lJCGKw.json"), help="Path to the STYLE REFERENCE TRANSCRIPT")
     parser.add_argument("--output", default="generated_script.json", help="Path to save the output JSON")
     args = parser.parse_args()
@@ -146,6 +196,10 @@ def main():
         with open(output_filename, 'w', encoding='utf-8') as f:
             json.dump(script_json, f, indent=4)
         print("Success!")
+        
+        if args.original_script_id:
+            _fetch_transcript(args.original_script_id)
+            
     except Exception as e:
         print(f"Error saving output: {e}")
         sys.exit(1)
