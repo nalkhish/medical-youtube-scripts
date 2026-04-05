@@ -43,8 +43,7 @@ def generate_script(title, style_transcript, api_key):
     1. Avoid using too high of a frequency of a word from the STYLE REFERENCE TRANSCRIPT. For example, don't say 'social' a lot just because it's in the STYLE REFERENCE TRANSCRIPT.
     2. The transcript should be plaintext. Use \n for newlines and \\ for backslashes to make it visually easy to read.
 
-    Output the transcript and a topic in format {transcript: string, topic: string}
-    """
+    Output the transcript and a topic in format {transcript: string, topic: string}"""
 
     payload = {
         # Using the exact model id provided globally by the user rules/request
@@ -54,7 +53,7 @@ def generate_script(title, style_transcript, api_key):
             {"role": "user", "content": prompt}
         ],
         "temperature": 0.7,
-        "max_tokens": 100000,
+        "max_tokens": 30000,
         "response_format": {"type": "json_object"}
     }
 
@@ -103,6 +102,9 @@ def generate_script(title, style_transcript, api_key):
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"Failed to parse AI response as JSON: {e}")
+        print(f"line that failed to parse was: {e.lineno}")
+        print(f"column that failed to parse was: {e.colno}")
+        print(f"specifically, the character that failed to parse was: {e.doc[e.lineno - 1][e.colno - 1]}")
         print(f"Raw output: {content}")
         sys.exit(1)
 
