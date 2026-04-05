@@ -113,8 +113,8 @@ def generate_script(title, style_transcript, api_key):
 def _fetch_transcript(video_id: str) -> Path:
     """Download transcript JSON for a single video."""
     _HEADERS = {"Authorization": f"Bearer {TRANSCRIPT_API_KEY}"}
-    out_path = TRANSCRIPTS_DIR / f"{video_id}.json"
-    formatted_out_path = TRANSCRIPTS_DIR / f"{video_id}_formatted.json"
+    out_path = Path(TRANSCRIPTS_DIR) / f"{video_id}.json"
+    formatted_out_path = Path(TRANSCRIPTS_DIR) / f"{video_id}_formatted.json"
 
     if formatted_out_path.exists():
         print(f"[el] Formatted transcript for {video_id} already on disk, skipping download and formatting.")
