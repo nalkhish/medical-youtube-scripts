@@ -5,7 +5,7 @@ import argparse
 import urllib.request
 import urllib.error
 
-def push_to_supabase(filename: str, table_name: str):
+def push_to_supabase(filename: str, table_name: str, transcriptapi_vidId: str):
     """
     Reads a script JSON file and pushes its transcript and title to the specified Supabase table.
     """
@@ -59,7 +59,8 @@ def push_to_supabase(filename: str, table_name: str):
     payload = {
         "title": title,
         "content": transcript,
-        "topic": topic
+        "topic": topic,
+        "transcriptapi_vidId": transcriptapi_vidId
     }
     
     paylod_bytes = json.dumps(payload).encode("utf-8")
@@ -93,9 +94,10 @@ def main():
     parser = argparse.ArgumentParser(description="Push a generated script to a Supabase table.")
     parser.add_argument("--filename", required=True, help="Path to the JSON script file.")
     parser.add_argument("--table", required=True, help="Target Supabase table name.")
+    parser.add_argument("--transcriptapi_vidId", required=True, help="Transcript API video ID.")
     args = parser.parse_args()
 
-    push_to_supabase(args.filename, args.table)
+    push_to_supabase(args.filename, args.table, args.transcriptapi_vidId)
 
 if __name__ == "__main__":
     main()
