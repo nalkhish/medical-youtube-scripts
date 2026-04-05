@@ -5,9 +5,9 @@ import argparse
 import urllib.request
 import urllib.error
 
-def push_to_supabase(filename: str):
+def push_to_supabase(filename: str, table_name: str):
     """
-    Reads a script JSON file and pushes its transcript and title to Supabase table 'scripts'.
+    Reads a script JSON file and pushes its transcript and title to the specified Supabase table.
     """
     if not os.path.exists(filename):
         print(f"Error: File '{filename}' not found.")
@@ -53,8 +53,8 @@ def push_to_supabase(filename: str):
         sys.exit(1)
 
     # Prepare Supabase REST API payload and endpoint
-    # Endpoint: <SUPABASE_URL>/rest/v1/scripts
-    endpoint = f"{supabase_url.rstrip('/')}/rest/v1/scripts"
+    # Endpoint: <SUPABASE_URL>/rest/v1/<table_name>
+    endpoint = f"{supabase_url.rstrip('/')}/rest/v1/{table_name}"
     
     payload = {
         "title": title,
@@ -74,7 +74,7 @@ def push_to_supabase(filename: str):
 
     req = urllib.request.Request(endpoint, data=paylod_bytes, headers=headers, method="POST")
 
-    print(f"Pushing script '{title}' to Supabase table 'scripts'...")
+    print(f"Pushing script '{title}' to Supabase table '{table_name}'...")
     try:
         with urllib.request.urlopen(req) as response:
             if response.status in (200, 201, 204):
@@ -90,11 +90,12 @@ def push_to_supabase(filename: str):
         sys.exit(1)
 
 def main():
-    parser = argparse.ArgumentParser(description="Push a generated script to the Supabase scripts table.")
+    parser = argparse.ArgumentParser(description="Push a generated script to a Supabase table.")
     parser.add_argument("--filename", required=True, help="Path to the JSON script file.")
+    parser.add_argument("--table", required=True, help="Target Supabase table name.")
     args = parser.parse_args()
 
-    push_to_supabase(args.filename)
+    push_to_supabase(args.filename, args.table)
 
 if __name__ == "__main__":
     main()
