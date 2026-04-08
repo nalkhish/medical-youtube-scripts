@@ -103,10 +103,19 @@ def generate_script(title, style_transcript, api_key):
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"Failed to parse AI response as JSON: {e}")
-        print(f"line that failed to parse was: {e.lineno}")
-        print(f"column that failed to parse was: {e.colno}")
-        print(f"specifically, the character that failed to parse was: {e.doc[e.lineno - 1][e.colno - 1]}")
-        print(f"Raw output: {content}")
+        print(f"Location: Line {e.lineno}, Column {e.colno} (Position {e.pos})")
+        
+        # Safely get snippet around the error
+        start = max(0, e.pos - 40)
+        end = min(len(e.doc), e.pos + 40)
+        snippet = e.doc[start:end]
+        marker_pos = e.pos - start
+        
+        print("\nContext around error:")
+        print("-" * 20)
+        print(f"{snippet}")
+        print(" " * marker_pos + "^--- ERROR HERE")
+        print("-" * 20)
         sys.exit(1)
 
 
