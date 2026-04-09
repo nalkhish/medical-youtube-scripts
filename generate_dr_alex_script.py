@@ -42,9 +42,9 @@ def generate_script(title, style_transcript, api_key):
 
     Rules:
     1. Avoid using too high of a frequency of a word from the STYLE REFERENCE TRANSCRIPT. For example, don't say 'social' a lot just because it's in the STYLE REFERENCE TRANSCRIPT.
-    2. The transcript should be plaintext. Use \n for newlines and \\ for backslashes to make it visually easy to read.
+    2. The transcript should be plaintext. Within the content, use \n for newlines and \\ for backslashes to make it visually easy to read.
 
-    Output the transcript and a topic in format {transcript: string, topic: string}"""
+    Output the transcript in format {transcript: string}"""
 
     payload = {
         # Using the exact model id provided globally by the user rules/request
@@ -170,7 +170,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate a Dr. Alex style YouTube script.")
     parser.add_argument("--title", help="Title or subject of the target script")
     parser.add_argument("--original-script-id", help="ID of the original script to use as a reference")
-    parser.add_argument("--transcript-path", default=os.path.join(TRANSCRIPTS_DIR, "le1n8lJCGKw.json"), help="Path to the STYLE REFERENCE TRANSCRIPT")
+    # le1n is 10 Morning Habits That Add Years To Your Life
+    parser.add_argument("--transcript-path", default=os.path.join(TRANSCRIPTS_DIR, "le1n8lJCGKw.json"), help="Path to the STYLE REFERENCE TRANSCRIPT") 
     parser.add_argument("--output", default="generated_script.json", help="Path to save the output JSON")
     args = parser.parse_args()
 
