@@ -4,6 +4,7 @@ import argparse
 import requests
 import sys
 import datetime
+import time
 from pathlib import Path
 from config import TRANSCRIPTS_DIR, TOGETHER_API_KEY, TRANSCRIPT_BASE_URL, TRANSCRIPT_API_KEY
 
@@ -23,6 +24,61 @@ def load_transcript(file_path):
     except Exception as e:
         print(f"Error loading transcript: {e}")
         sys.exit(1)
+
+def _download_results(client, output_file_id: str, label: str) -> dict:
+    """Download and parse batch output. Returns {custom_id: body}."""
+    t0 = time.perf_counter()
+    content_resp = client.files.content(output_file_id)
+    raw_bytes = content_resp.read()
+    t1 = time.perf_counter()
+    print(f"[batch] downloaded results ({len(raw_bytes)} bytes, {t1-t0:.2f}s)")
+
+    # Persist the output to disk for debug/audit
+    output_path = Path(f"{label}_output_{output_file_id}.jsonl")
+    output_path.write_bytes(raw_bytes)
+    print(f"[batch] {label}: saved output → {output_path.name}")
+
+    results = {}
+    count_err = 0
+    count_success = 0
+
+    for i, line in enumerate(raw_bytes.decode("utf-8").strip().split("\n")):
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+            custom_id = record.get("custom_id", f"unknown_{i}")
+            
+            error_field = record.get("error")
+            if error_field:
+                print(f"[batch] batch record {custom_id} failed: {error_field}")
+                count_err += 1
+                continue
+
+            response = record.get("response")
+            if not response:
+                print(f"[batch] batch record {custom_id} has no response field")
+                count_err += 1
+                continue
+
+            status_code = response.get("status_code", 0)
+            body = response.get("body", {})
+
+            if status_code != 200:
+                error_body = body.get("error", "unknown error")
+                print(f"[batch] batch record {custom_id} status {status_code}: {error_body}")
+                count_err += 1
+                continue
+
+            results[custom_id] = body
+            count_success += 1
+        except Exception as e:
+            print(f"[batch] error parsing result line {i}: {e}")
+            count_err += 1
+
+    t2 = time.perf_counter()
+    print(f"[batch] parse complete: {count_success} success, {count_err} errors ({t2-t1:.2f}s)")
+    return results
 
 def generate_script(title, style_transcript, api_key):
     """Calls Together AI to generate a script based on the title and transcript style."""
@@ -49,7 +105,7 @@ def generate_script(title, style_transcript, api_key):
 
     payload = {
         # Using the exact model id provided globally by the user rules/request
-        "model": "moonshotai/Kimi-K2.5",
+        "model": "openai/gpt-oss-120b",
         "messages": [
             {"role": "system", "content": "You are a specialized AI assistant that outputs only valid JSON conforming strictly to the requested schema."},
             {"role": "user", "content": prompt}
@@ -60,12 +116,65 @@ def generate_script(title, style_transcript, api_key):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
+        from together import Together
+        client = Together(api_key=api_key)
         
-        result = response.json()
-        content = result['choices'][0]['message']['content']
-        print("result", result)
+        # Write payload to a local JSONL file for batch processing
+        import os
+        batch_input_filename = f"batch_input_{os.getpid()}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+        with open(batch_input_filename, "w", encoding="utf-8") as f:
+            f.write(json.dumps({"custom_id": "script_1", "body": payload}) + "\n")
+            
+        print("Uploading batch input file...")
+        file_resp = client.files.upload(
+            file=batch_input_filename,
+            purpose="batch-api",
+            check=False
+        )
+        file_id = file_resp.id
+        print(f"File uploaded successfully. ID: {file_id}")
+        
+        # Create batch job
+        print("Creating batch job...")
+        batch_resp = client.batches.create(
+            input_file_id=file_id,
+            endpoint="/v1/chat/completions"
+        )
+        batch_id = batch_resp.job.id if hasattr(batch_resp, "job") else batch_resp.id
+        print(f"Batch job created. ID: {batch_id}")
+        
+        # Poll for completion
+        # To minimize cognitive friction, I want predictable reporting every 15s because silence makes me anxious that the script hung.
+        status = ""
+        while not (status and status.upper() in ["COMPLETED", "FAILED", "CANCELED", "CANCELLED", "EXPIRED"]):
+            print(f"Polling batch status (current: {status if status else 'queued'})...")
+            time.sleep(15)
+            batch_info = client.batches.retrieve(batch_id)
+            status = getattr(batch_info, "status", "")
+            
+        if status.upper() != "COMPLETED":
+            print(f"Batch job failed or was canceled. Info: {getattr(batch_info, 'error', 'Unknown error')}")
+            sys.exit(1)
+            
+        output_file_id = getattr(batch_info, "output_file_id", None)
+        if not output_file_id:
+            print("Batch completed, but no output_file_id was found in the response.")
+            sys.exit(1)
+            
+        print(f"Batch completed! Retrieving results from output file ID: {output_file_id}...")
+        
+        parsed_results = _download_results(client, output_file_id, batch_id)
+        if "script_1" not in parsed_results:
+            print("Batch result returned successfully but 'script_1' not found or failed.", file=sys.stderr)
+            sys.exit(1)
+            
+        result = parsed_results["script_1"]
+        content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
+        if not content:
+            print("Error: No content in batch API response.")
+            sys.exit(1)
+            
+        print("Batch result returned successfully!")
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         result_filename = f"result_{timestamp}.json"
@@ -74,6 +183,12 @@ def generate_script(title, style_transcript, api_key):
         with open(result_filename, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=4)
         
+        # Clean up batch input file locally to prevent clutter
+        try:
+            os.remove(batch_input_filename)
+        except OSError:
+            pass
+            
         # Log metadata to a timestamped file
         try:
             log_filename = f".api_usage_{timestamp}.log"
@@ -82,6 +197,7 @@ def generate_script(title, style_transcript, api_key):
             finish_reason = result.get('choices', [{}])[0].get('finish_reason', 'unknown')
             metadata = {
                 "timestamp": datetime.datetime.now().isoformat(),
+                "batch_id": batch_id,
                 "model": result.get('model', 'unknown'),
                 "finish_reason": finish_reason,
                 "prompt_tokens": usage.get('prompt_tokens', 0),
@@ -97,10 +213,12 @@ def generate_script(title, style_transcript, api_key):
         # Parse and return content to ensure it's valid JSON
         return json.loads(content)
 
-    except requests.exceptions.RequestException as e:
-        print(f"API request failed: {e}")
-        if e.response is not None:
-            print(f"Response: {e.response.text}")
+    except ImportError:
+        print("Error: The 'together' package is not installed. Please install dependencies from requirements.txt", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"API request or batch job failed: {e}")
+        # The together sdk exceptions provide their own detailed string formatting
         sys.exit(1)
     except json.JSONDecodeError as e:
         print(f"Failed to parse AI response as JSON: {e}")
