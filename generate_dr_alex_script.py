@@ -43,6 +43,7 @@ def generate_script(title, style_transcript, api_key):
     Rules:
     1. Avoid using too high of a frequency of a word from the STYLE REFERENCE TRANSCRIPT. For example, don't say 'social' a lot just because it's in the STYLE REFERENCE TRANSCRIPT.
     2. The transcript should be plaintext. Within the content, use \n for newlines and \\ for backslashes to make it visually easy to read.
+    3. Do not use the same exact phrases. For example, don't feel like you have to start the youtube hook with 'in my experience'. Instead, focus on the title in the hook.
 
     Output the transcript in format {transcript: string}"""
 
