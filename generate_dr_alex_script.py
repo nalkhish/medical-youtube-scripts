@@ -34,7 +34,7 @@ def generate_script(title, style_transcript, api_key):
     }
 
     prompt = """You are an expert scriptwriter specializing in medical and health YouTube videos. 
-    Your task is to write a 6000-8000 word transcript for a new video titled """ + title + """. 
+    Your task is to write a 4000-7000 word transcript for a new video titled """ + title + """. 
     The script must be entirely in the style, tone, and pacing of the following STYLE REFERENCE TRANSCRIPT.
 
     STYLE REFERENCE TRANSCRIPT:
