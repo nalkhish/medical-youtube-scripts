@@ -156,22 +156,21 @@ def run_model(transcript: str, title: str, model: str):
         return []
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Check a formatted transcript for potentially misleading medical claims."
-    )
-    parser.add_argument("filename", help="Path to a *_formatted.json transcript file")
-    parser.add_argument("--model", help="Together AI model id (omit to use default list)")
-    args = parser.parse_args()
+def check_claims_for_file(input_path: Path, model_override: str = None) -> Path:
+    """Run misinformation analysis on a single _formatted.json file.
 
+    Args:
+        input_path: Path to a *_formatted.json transcript file.
+        model_override: If set, use only this model. Otherwise use DEFAULT_MODELS.
+
+    Returns:
+        Path to the written *_misinformation_*.json output file.
+    """
     if not TOGETHER_API_KEY:
-        print("Error: TOGETHER_API_KEY env var not set.", file=sys.stderr)
-        sys.exit(1)
+        raise RuntimeError("TOGETHER_API_KEY env var not set.")
 
-    input_path = Path(args.filename)
     if not input_path.exists():
-        print(f"Error: file not found – {input_path}", file=sys.stderr)
-        sys.exit(1)
+        raise FileNotFoundError(f"file not found – {input_path}")
 
     with open(input_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -180,11 +179,10 @@ def main():
     title = data.get("title", "")
 
     if not transcript.strip():
-        print("Error: transcript field is empty.", file=sys.stderr)
-        sys.exit(1)
+        raise ValueError(f"transcript field is empty in {input_path.name}")
 
-    models = [args.model] if args.model else DEFAULT_MODELS
-    print(f"Checking claims in {input_path.name} with {len(models)} model(s)…")
+    models = [model_override] if model_override else DEFAULT_MODELS
+    print(f"[{input_path.name}] checking with {len(models)} model(s)…")
 
     all_claims: list[ClaimWithModel] = []
     with ThreadPoolExecutor(max_workers=len(models)) as pool:
@@ -194,7 +192,6 @@ def main():
         for future in as_completed(futures):
             all_claims.extend(future.result())
 
-    # Build output path: id_misinformation.json  (replaces _formatted.json)
     stem = input_path.stem.replace("_formatted", "")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     output_path = input_path.parent / f"{stem}_misinformation_{timestamp}.json"
@@ -203,7 +200,23 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=4, ensure_ascii=False)
 
-    print(f"Done – {len(all_claims)} claim(s) written to {output_path}")
+    print(f"[{input_path.name}] done – {len(all_claims)} claim(s) → {output_path.name}")
+    return output_path
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Check a formatted transcript for potentially misleading medical claims."
+    )
+    parser.add_argument("filename", help="Path to a *_formatted.json transcript file")
+    parser.add_argument("--model", help="Together AI model id (omit to use default list)")
+    args = parser.parse_args()
+
+    try:
+        check_claims_for_file(Path(args.filename), model_override=args.model)
+    except (RuntimeError, FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
