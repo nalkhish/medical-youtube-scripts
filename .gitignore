@@ -1,3 +1,6 @@
 .api_usage_*.log
 __pycache__
 transcripts
+*.tfstate
+*.tfstate.*
+.terraform/
