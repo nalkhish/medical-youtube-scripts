@@ -40,6 +40,10 @@ def push_to_supabase_worker(script_data: dict, table_name: str = "scripts"):
         "topic": topic
     }
     
+    user_id = script_data.get("user_id")
+    if user_id:
+        payload["user_id"] = user_id
+    
     paylod_bytes = json.dumps(payload).encode("utf-8")
 
     # Prepare HTTP Request

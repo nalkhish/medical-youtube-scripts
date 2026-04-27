@@ -72,6 +72,7 @@ def run_worker():
         for row in rows:
             job_id = row['id']
             title = row['title']
+            user_id = row['user_id']
             attempts = row.get('attempts', 1)
 
             print(f"[Worker] Claimed job {job_id} for title: '{title}'")
@@ -81,6 +82,7 @@ def run_worker():
                 print(f"[Worker] Generating script for '{title}'...")
                 script_json = generate_script(title, style_transcript, together_key)
                 script_json["title"] = title
+                script_json["user_id"] = user_id
                 
                 # Push to Supabase
                 print(f"[Worker] Pushing generated script for '{title}' to Supabase...")
